@@ -1,0 +1,113 @@
+import random
+
+def create_board():
+    """Creates an empty 6x7 grid."""
+    return [[" " for _ in range(7)] for _ in range(6)]
+
+def print_board(board):
+    """Prints the board in a formatted way."""
+    for row in board:
+        print("| " + " | ".join(row) + " |")
+    # Print the column indices (1-7)
+    print("  " + "   ".join(map(str, range(1, 8))))
+
+def is_valid_move(board, col):
+    """Checks if the move is valid (i.e., the column is not full)."""
+    return board[0][col] == " "
+
+def get_next_open_row(board, col):
+    """Returns the index of the lowest available row in the chosen column."""
+    for r in range(5, -1, -1):  # from 5 (bottom) to 0 (top)
+        if board[r][col] == " ":
+            return r
+    return None
+
+def drop_piece(board, row, col, piece):
+    """Places the piece ('X' or 'O') in the specified cell."""
+    board[row][col] = piece
+
+def winning_move(board, piece):
+    """Checks if there is a winning combination for the given piece."""
+    # Check horizontally
+    for r in range(6):
+        for c in range(7 - 3):
+            if board[r][c] == piece and board[r][c+1] == piece and board[r][c+2] == piece and board[r][c+3] == piece:
+                return True
+    # Check vertically
+    for c in range(7):
+        for r in range(6 - 3):
+            if board[r][c] == piece and board[r+1][c] == piece and board[r+2][c] == piece and board[r+3][c] == piece:
+                return True
+    # Check diagonally (ascending)
+    for r in range(3, 6):
+        for c in range(7 - 3):
+            if board[r][c] == piece and board[r-1][c+1] == piece and board[r-2][c+2] == piece and board[r-3][c+3] == piece:
+                return True
+    # Check diagonally (descending)
+    for r in range(6 - 3):
+        for c in range(7 - 3):
+            if board[r][c] == piece and board[r+1][c+1] == piece and board[r+2][c+2] == piece and board[r+3][c+3] == piece:
+                return True
+    return False
+
+def board_full(board):
+    """Checks if the board is full (i.e., the game is a draw)."""
+    return all(board[0][c] != " " for c in range(7))
+
+def human_move(board):
+    """Asks the player to choose the column in which to place their piece."""
+    while True:
+        try:
+            col = int(input("Enter the column number (1-7) where you want to drop your piece: ")) - 1
+            if col < 0 or col >= 7:
+                print("Column out of range. Choose a number between 1 and 7.")
+                continue
+            if not is_valid_move(board, col):
+                print("Column is full. Choose another column.")
+                continue
+            row = get_next_open_row(board, col)
+            return row, col
+        except ValueError:
+            print("Invalid input. Please enter a number between 1 and 7.")
+
+def computer_move(board):
+    """The computer selects a random valid move."""
+    valid_moves = [c for c in range(7) if is_valid_move(board, c)]
+    col = random.choice(valid_moves)
+    row = get_next_open_row(board, col)
+    print(f"The computer chooses column {col + 1}.")
+    return row, col
+
+def main():
+    board = create_board()
+    game_over = False
+    turn = 0  # 0 = human player, 1 = computer
+
+    print("Welcome to Connect Four!")
+    print_board(board)
+
+    while not game_over:
+        if turn == 0:
+            row, col = human_move(board)
+            drop_piece(board, row, col, "X")
+            if winning_move(board, "X"):
+                print_board(board)
+                print("Congratulations! You won!")
+                game_over = True
+        else:
+            row, col = computer_move(board)
+            drop_piece(board, row, col, "O")
+            if winning_move(board, "O"):
+                print_board(board)
+                print("The computer won!")
+                game_over = True
+
+        print_board(board)
+        if board_full(board) and not game_over:
+            print("The game ended in a draw!")
+            game_over = True
+
+        turn = 1 if turn == 0 else 0
+
+if __name__ == "__main__":
+    main()
